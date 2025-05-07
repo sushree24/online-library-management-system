@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Online Library Portal</title>
+  <link rel="stylesheet" href="css/usr_login.css" />
+  <style>
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+    .switch-btns button {
+      margin: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+  </style>
+  <!-- Firebase 8 (recommended for easier JS) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+  <h1 id="portal">Online Library Portal</h1>
+  <hr>
+  <button onclick="location.href='index.html'">Back</button>
+
+  <div class="login-page">
+    <div class="form">
+      
+
+      <!-- Login Form -->
+      <div class="form-section" id="login-section">
+        <h2>User Login</h2>
+        <form id="login-form">
+          <input type="email" placeholder="Email" id="login_email" required />
+          <input type="password" placeholder="Password" id="login_password" required />
+          <button type="submit">Login</button>
+<!-- Replace the broken register button in the login form with this: -->
+<button type="button" id="show-register-inline">Register</button>
+
+        </form>
+      </div>
+
+      <!-- Register Form -->
+      <div class="form-section" id="register-section">
+        <h2>User Registration</h2>
+        <form id="register-form">
+          <input type="text" id="reg_username" placeholder="Username" required><br><br>
+          <input type="email" id="reg_email" placeholder="Email" required><br><br>
+          <input type="password" id="reg_password" placeholder="Password" required><br><br>
+          <input type="date" id="reg_date" required><br><br>
+          <button type="submit">Register</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between forms
+    $('#show-login').click(() => {
+      $('#register-section').removeClass('active');
+      $('#login-section').addClass('active');
+    });
+
+    $('#show-register').click(() => {
+      $('#login-section').removeClass('active');
+      $('#register-section').addClass('active');
+    });
+
+    // Firebase setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyBin1evT-H6jfR49WIhtVPsGMLzbEklIQY",
+      authDomain: "library-management-syste-f2a85.firebaseapp.com",
+      projectId: "library-management-syste-f2a85",
+      storageBucket: "library-management-syste-f2a85.appspot.com",
+      messagingSenderId: "914416876417",
+      appId: "1:914416876417:web:bf9e7762c1c283ba"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Register user
+    $('#register-form').submit(function(e) {
+      e.preventDefault();
+      const username = $('#reg_username').val();
+      const email = $('#reg_email').val();
+      const password = $('#reg_password').val();
+      const date = $('#reg_date').val();
+
+      if (username && email && password && date) {
+        firebase.auth().createUserWithEmailAndPassword(email, password)
+          .then(userCredential => {
+            return db.collection("users").doc(userCredential.user.uid).set({
+              username,
+              email,
+              date,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          })
+          .then(() => {
+            alert("Registration successful!");
+            window.location = "user_portal.html";
+          })
+          .catch(error => {
+            alert(error.message);
+          });
+      } else {
+        alert("Please fill all fields");
+      }
+    });
+
+    // Login user
+    $('#login-form').submit(function(e) {
+      e.preventDefault();
+      const email = $('#login_email').val();
+      const password = $('#login_password').val();
+
+      if (email && password) {
+        firebase.auth().signInWithEmailAndPassword(email, password)
+          .then(() => {
+            window.location = "user_portal.html";
+          })
+          .catch(error => {
+            alert(error.message);
+          });
+      }
+    });
+// Handle inline Register button in the login form
+$('#show-register-inline').click(() => {
+  $('#login-section').removeClass('active');
+  $('#register-section').addClass('active');
+});
+
+    // Show login by default
+    $(document).ready(() => {
+      $('#login-section').addClass('active');
+    });
+  </script>
+</body>
+</html>
